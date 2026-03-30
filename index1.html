@@ -1,0 +1,655 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Система записи клиентов | CRM-панель</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e0eaf4 0%, #cfdef3 100%);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
+        }
+
+        /* контейнер */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* карточки */
+        .card {
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2), 0 1px 3px rgba(0,0,0,0.05);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid #2c7da0;
+            padding-left: 1rem;
+        }
+
+        .card-header h2 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: #1e3b4f;
+            letter-spacing: -0.3px;
+        }
+
+        .card-header i {
+            font-size: 1.8rem;
+        }
+
+        /* форма */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #1f5068;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input, 
+        .input-group select {
+            padding: 0.8rem 1rem;
+            border: 1.5px solid #cbdbe0;
+            border-radius: 1.2rem;
+            font-size: 1rem;
+            background: white;
+            transition: 0.2s;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .input-group input:focus, 
+        .input-group select:focus {
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            align-items: center;
+        }
+
+        .btn {
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #eef2f8;
+            color: #1f3b4a;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #2c7da0;
+            color: white;
+            box-shadow: 0 5px 12px rgba(44,125,160,0.3);
+        }
+        .btn-primary:hover {
+            background: #1f5e7a;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background: #e26d5c;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c75342;
+        }
+        .btn-outline {
+            border: 1.5px solid #2c7da0;
+            background: transparent;
+            color: #2c7da0;
+        }
+        .btn-outline:hover {
+            background: #e9f2f7;
+        }
+        .btn-warning {
+            background: #f4d03f;
+            color: #2c3e2f;
+        }
+        .btn-warning:hover {
+            background: #e2b93b;
+        }
+
+        /* таблица */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 1.5rem;
+        }
+
+        .client-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .client-table th {
+            background-color: #2c7da0;
+            color: white;
+            padding: 1rem 1rem;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .client-table td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .client-table tr:hover {
+            background-color: #f8fafd;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.3rem 0.6rem;
+            border-radius: 1.2rem;
+            transition: 0.1s;
+            font-weight: 500;
+        }
+        .edit-btn {
+            color: #2c7da0;
+            background: #eef2fc;
+        }
+        .delete-btn {
+            color: #c0392b;
+            background: #fee9e7;
+        }
+        .edit-btn:hover, .delete-btn:hover {
+            filter: brightness(0.92);
+            transform: scale(0.97);
+        }
+
+        .empty-row td {
+            text-align: center;
+            padding: 2rem;
+            color: #6c7a89;
+            font-style: italic;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            background: #eef3fa;
+            padding: 0.8rem 1.2rem;
+            border-radius: 2rem;
+        }
+
+        @media (max-width: 680px) {
+            body {
+                padding: 1rem;
+            }
+            .card {
+                padding: 1.2rem;
+            }
+            .btn-group {
+                justify-content: center;
+            }
+            .client-table th, .client-table td {
+                padding: 0.7rem 0.5rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- карточка формы записи -->
+    <div class="card">
+        <div class="card-header">
+            <h2>✍️ Новая запись клиента</h2>
+        </div>
+        <form id="clientForm">
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>ФИО *</label>
+                    <input type="text" id="fullName" placeholder="Иванов Иван Иванович" autocomplete="off" required>
+                </div>
+                <div class="input-group">
+                    <label>Телефон *</label>
+                    <input type="tel" id="phone" placeholder="+7 (999) 123-45-67" autocomplete="off" required>
+                </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="client@example.com" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label>Дата визита</label>
+                    <input type="date" id="visitDate">
+                </div>
+                <div class="input-group">
+                    <label>Услуга</label>
+                    <select id="service">
+                        <option value="Консультация">Консультация</option>
+                        <option value="Диагностика">Диагностика</option>
+                        <option value="Ремонт">Ремонт</option>
+                        <option value="Обслуживание">Обслуживание</option>
+                        <option value="Другое">Другое</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Статус</label>
+                    <select id="status">
+                        <option value="Новый">🟡 Новый</option>
+                        <option value="Подтвержден">✅ Подтвержден</option>
+                        <option value="Завершен">✔️ Завершен</option>
+                        <option value="Отменен">❌ Отменен</option>
+                    </select>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary" id="submitBtn">➕ Добавить клиента</button>
+                <button type="button" class="btn btn-outline" id="resetFormBtn">Очистить форму</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- карточка списка клиентов -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📋 База клиентов</h2>
+        </div>
+        <div class="table-wrapper">
+            <table class="client-table" id="clientTable">
+                <thead>
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Телефон</th>
+                        <th>Email</th>
+                        <th>Дата визита</th>
+                        <th>Услуга</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr class="empty-row">
+                        <td colspan="7">Нет записей. Добавьте первого клиента ✨</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="stats" id="statsPanel">
+            <span>👥 Всего клиентов: <strong id="totalCount">0</strong></span>
+            <span>🟡 Новые: <strong id="newCount">0</strong></span>
+            <button type="button" class="btn btn-warning" id="clearAllBtn" style="padding: 0.4rem 1.2rem;">🗑 Очистить всё</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Модель данных ---
+    let clients = [];
+
+    // DOM элементы
+    const fullNameInput = document.getElementById('fullName');
+    const phoneInput = document.getElementById('phone');
+    const emailInput = document.getElementById('email');
+    const visitDateInput = document.getElementById('visitDate');
+    const serviceSelect = document.getElementById('service');
+    const statusSelect = document.getElementById('status');
+    const clientForm = document.getElementById('clientForm');
+    const tableBody = document.getElementById('tableBody');
+    const totalCountSpan = document.getElementById('totalCount');
+    const newCountSpan = document.getElementById('newCount');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const resetFormBtn = document.getElementById('resetFormBtn');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // ID для редактирования (если не null, значит режим редактирования)
+    let editModeId = null;
+
+    // --- Вспомогательные функции ---
+    function loadFromLocalStorage() {
+        const stored = localStorage.getItem('crm_clients');
+        if (stored) {
+            try {
+                clients = JSON.parse(stored);
+                // гарантируем, что у каждого объекта есть id и корректные поля
+                if (!Array.isArray(clients)) clients = [];
+            } catch(e) { clients = []; }
+        } else {
+            // пара демо-записей для наглядности
+            clients = [
+                {
+                    id: Date.now() + 1,
+                    fullName: 'Екатерина Дмитриева',
+                    phone: '+7 912 345-67-89',
+                    email: 'ekaterina@example.ru',
+                    visitDate: '2025-04-15',
+                    service: 'Консультация',
+                    status: 'Новый'
+                },
+                {
+                    id: Date.now() + 2,
+                    fullName: 'Алексей Смирнов',
+                    phone: '+7 921 123-45-67',
+                    email: 'alexey@mail.ru',
+                    visitDate: '2025-04-18',
+                    service: 'Ремонт',
+                    status: 'Подтвержден'
+                }
+            ];
+            saveToLocalStorage();
+        }
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem('crm_clients', JSON.stringify(clients));
+    }
+
+    // отрисовка таблицы и статистики
+    function renderTable() {
+        if (!tableBody) return;
+        if (clients.length === 0) {
+            tableBody.innerHTML = `<tr class="empty-row"><td colspan="7">Нет записей. Добавьте первого клиента ✨</td></tr>`;
+            totalCountSpan.innerText = '0';
+            newCountSpan.innerText = '0';
+            return;
+        }
+
+        let newCounter = 0;
+        let rowsHtml = '';
+        clients.forEach(client => {
+            if (client.status === 'Новый') newCounter++;
+            // форматирование даты (если есть)
+            let formattedDate = client.visitDate ? client.visitDate : '—';
+            // защита от undefined
+            const serviceVal = client.service || '—';
+            const statusVal = client.status || 'Новый';
+            // отображение статуса с эмодзи
+            let statusDisplay = statusVal;
+            if (statusVal === 'Новый') statusDisplay = '🟡 Новый';
+            if (statusVal === 'Подтвержден') statusDisplay = '✅ Подтвержден';
+            if (statusVal === 'Завершен') statusDisplay = '✔️ Завершен';
+            if (statusVal === 'Отменен') statusDisplay = '❌ Отменен';
+
+            rowsHtml += `
+                <tr data-id="${client.id}">
+                    <td><strong>${escapeHtml(client.fullName)}</strong></td>
+                    <td>${escapeHtml(client.phone)}</td>
+                    <td>${escapeHtml(client.email || '—')}</td>
+                    <td>${escapeHtml(formattedDate)}</td>
+                    <td>${escapeHtml(serviceVal)}</td>
+                    <td>${escapeHtml(statusDisplay)}</td>
+                    <td class="action-buttons">
+                        <button class="icon-btn edit-btn" data-id="${client.id}">✏️ Ред.</button>
+                        <button class="icon-btn delete-btn" data-id="${client.id}">🗑 Удалить</button>
+                    </td>
+                </tr>
+            `;
+        });
+        tableBody.innerHTML = rowsHtml;
+        totalCountSpan.innerText = clients.length;
+        newCountSpan.innerText = newCounter;
+
+        // добавляем обработчики на кнопки редактирования/удаления
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = Number(btn.getAttribute('data-id'));
+                startEditClient(id);
+            });
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = Number(btn.getAttribute('data-id'));
+                deleteClientById(id);
+            });
+        });
+    }
+
+    // простая защита от XSS
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    // валидация формы
+    function getFormData() {
+        const fullName = fullNameInput.value.trim();
+        const phone = phoneInput.value.trim();
+        const email = emailInput.value.trim();
+        const visitDate = visitDateInput.value;
+        const service = serviceSelect.value;
+        const status = statusSelect.value;
+
+        if (!fullName) {
+            alert('Пожалуйста, введите ФИО клиента');
+            return null;
+        }
+        if (!phone) {
+            alert('Введите номер телефона');
+            return null;
+        }
+        // базовая валидация email (опционально)
+        if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+            alert('Введите корректный email или оставьте поле пустым');
+            return null;
+        }
+        return { fullName, phone, email, visitDate, service, status };
+    }
+
+    // добавить или обновить клиента
+    function saveClient(event) {
+        event.preventDefault();
+        const formData = getFormData();
+        if (!formData) return;
+
+        if (editModeId !== null) {
+            // Режим редактирования: обновляем существующего клиента
+            const index = clients.findIndex(c => c.id === editModeId);
+            if (index !== -1) {
+                clients[index] = {
+                    ...clients[index],
+                    fullName: formData.fullName,
+                    phone: formData.phone,
+                    email: formData.email,
+                    visitDate: formData.visitDate,
+                    service: formData.service,
+                    status: formData.status
+                };
+                saveToLocalStorage();
+                renderTable();
+                resetFormToDefault();
+                submitBtn.innerText = '➕ Добавить клиента';
+                editModeId = null;
+                // подсветка успеха
+                showTemporaryMessage('Клиент обновлён!', '#2c7da0');
+            } else {
+                // если вдруг не найден — выходим из режима
+                resetEditMode();
+                saveClient(event);
+            }
+        } else {
+            // Новая запись
+            const newClient = {
+                id: Date.now(),
+                fullName: formData.fullName,
+                phone: formData.phone,
+                email: formData.email,
+                visitDate: formData.visitDate,
+                service: formData.service,
+                status: formData.status
+            };
+            clients.push(newClient);
+            saveToLocalStorage();
+            renderTable();
+            resetFormToDefault();
+            showTemporaryMessage('✅ Клиент успешно записан!', '#27ae60');
+        }
+    }
+
+    function startEditClient(id) {
+        const client = clients.find(c => c.id === id);
+        if (!client) return;
+        // заполняем форму данными
+        fullNameInput.value = client.fullName;
+        phoneInput.value = client.phone;
+        emailInput.value = client.email || '';
+        visitDateInput.value = client.visitDate || '';
+        serviceSelect.value = client.service || 'Консультация';
+        statusSelect.value = client.status || 'Новый';
+        
+        editModeId = client.id;
+        submitBtn.innerText = '✏️ Сохранить изменения';
+        // скроллим к форме
+        document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // подсветка
+        submitBtn.style.background = "#f39c12";
+        setTimeout(() => { if(editModeId) submitBtn.style.background = ""; }, 100);
+    }
+
+    function deleteClientById(id) {
+        if (confirm('Вы уверены, что хотите удалить запись клиента?')) {
+            clients = clients.filter(c => c.id !== id);
+            saveToLocalStorage();
+            renderTable();
+            // если удалили клиента, который был в режиме редактирования — сбрасываем форму
+            if (editModeId === id) {
+                resetEditMode();
+            }
+            showTemporaryMessage('🗑 Запись удалена', '#e67e22');
+        }
+    }
+
+    function resetEditMode() {
+        editModeId = null;
+        submitBtn.innerText = '➕ Добавить клиента';
+        resetFormToDefault();
+    }
+
+    function resetFormToDefault() {
+        fullNameInput.value = '';
+        phoneInput.value = '';
+        emailInput.value = '';
+        visitDateInput.value = '';
+        serviceSelect.value = 'Консультация';
+        statusSelect.value = 'Новый';
+        // убираем возможные стили
+        submitBtn.style.background = "";
+    }
+
+    function clearAllClients() {
+        if (clients.length === 0) return;
+        const confirmClear = confirm('⚠️ ВНИМАНИЕ: будут удалены ВСЕ клиенты. Продолжить?');
+        if (confirmClear) {
+            clients = [];
+            saveToLocalStorage();
+            renderTable();
+            resetEditMode();
+            showTemporaryMessage('Все записи очищены', '#c0392b');
+        }
+    }
+
+    function showTemporaryMessage(msg, bgColor = '#2c7da0') {
+        // создаем легкий тост (ненавязчивый)
+        const toast = document.createElement('div');
+        toast.innerText = msg;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '25px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = bgColor;
+        toast.style.color = 'white';
+        toast.style.padding = '0.75rem 1.8rem';
+        toast.style.borderRadius = '3rem';
+        toast.style.fontWeight = '500';
+        toast.style.zIndex = '9999';
+        toast.style.boxShadow = '0 8px 20px rgba(0,0,0,0.2)';
+        toast.style.fontSize = '0.9rem';
+        toast.style.backdropFilter = 'blur(4px)';
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s';
+            setTimeout(() => toast.remove(), 400);
+        }, 2200);
+    }
+
+    // обработчик для очистки всей базы
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', clearAllClients);
+    }
+    if (resetFormBtn) {
+        resetFormBtn.addEventListener('click', () => {
+            resetEditMode();
+            showTemporaryMessage('Форма очищена', '#5d6d7e');
+        });
+    }
+
+    // инициализация
+    function init() {
+        loadFromLocalStorage();
+        renderTable();
+        clientForm.addEventListener('submit', saveClient);
+        // дополнительная проверка на случай, если редактирование отменяется внешне
+    }
+
+    init();
+</script>
+</body>
+</html>
